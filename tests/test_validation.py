@@ -70,4 +70,43 @@ def test_validate_columns_rejects_missing_column():
     with pytest.raises(DataValidationError):
         validate_columns(df)
 
-        
+
+def test_validate_numeric_ranges_rejects_infinite_tenure():
+    df = pd.DataFrame({
+        "tenure": [12, float("inf")],
+        "MonthlyCharges": [50.0, 60.0],
+    })
+
+    with pytest.raises(DataValidationError):
+        validate_numeric_ranges(df)
+
+
+def test_validate_numeric_ranges_rejects_missing_values():
+    df = pd.DataFrame({
+        "tenure": [12, None],
+        "MonthlyCharges": [50.0, 60.0],
+    })
+
+    with pytest.raises(DataValidationError):
+        validate_numeric_ranges(df)
+
+
+def test_validate_columns_rejects_unexpected_column():
+    df = pd.DataFrame({
+        "customerID": ["001"],
+        "unexpected_column": ["value"],
+    })
+
+    with pytest.raises(DataValidationError):
+        validate_columns(df)
+
+
+def test_validate_numeric_ranges_rejects_non_numeric_tenure():
+    df = pd.DataFrame({
+        "tenure": [12, "unknown"],
+        "MonthlyCharges": [50.0, 60.0],
+    })
+
+    with pytest.raises(DataValidationError):
+        validate_numeric_ranges(df)
+

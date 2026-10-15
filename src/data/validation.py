@@ -1,13 +1,13 @@
-from typing import List
 
+import logging
+from src.exceptions import DataValidationError
+import logging_config
 import pandas as pd
+import math
 
+logger = logging.getLogger(__name__)
 
-class DataValidationError(Exception):
-    """Raised when the input data fails validation."""
-
-
-EXPECTED_COLUMNS: List[str] = [
+EXPECTED_COLUMNS: list[str] = [
     "customerID",
     "gender",
     "SeniorCitizen",
@@ -32,20 +32,14 @@ EXPECTED_COLUMNS: List[str] = [
 ]
 
 
+def _raise_validation_error(message: str) -> None:
+    """Log a validation failure and raise a consistent exception."""
+    logger.error("Data validation failed: %s", message)
+    raise DataValidationError(message)
+
+
 def validate_columns(df: pd.DataFrame) -> None:
-    """
-    Validate that the dataset contains the expected columns.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset to validate.
-
-    Raises
-    ------
-    DataValidationError
-        If required columns are missing or unexpected columns are present.
-    """
+    """Validate the expected dataset columns."""
 
     actual_columns = list(df.columns)
 
@@ -62,12 +56,12 @@ def validate_columns(df: pd.DataFrame) -> None:
     ]
 
     if missing_columns:
-        raise DataValidationError(
+        _raise_validation_error(
             f"Missing expected columns: {missing_columns}"
         )
 
     if unexpected_columns:
-        raise DataValidationError(
+        _raise_validation_error(
             f"Unexpected columns found: {unexpected_columns}"
         )
 
@@ -76,96 +70,77 @@ def validate_target_column(
     df: pd.DataFrame,
     target_column: str = "Churn",
 ) -> None:
-    """
-    Validate the target column.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset to validate.
-
-    target_column : str
-        Name of the target column.
-
-    Raises
-    ------
-    DataValidationError
-        If the target column is missing or contains unexpected values.
-    """
+    """Validate the target column and its values."""
 
     if target_column not in df.columns:
-        raise DataValidationError(
+        _raise_validation_error(
             f"Target column '{target_column}' is missing."
+        )
+
+    if df[target_column].isna().any():
+        _raise_validation_error(
+            f"Target column '{target_column}' contains missing values."
         )
 
     allowed_values = {"Yes", "No"}
 
-    actual_values = set(
-        df[target_column].dropna().unique()
-    )
-
+    actual_values = set(df[target_column].unique())
     unexpected_values = actual_values - allowed_values
 
     if unexpected_values:
-        raise DataValidationError(
+        _raise_validation_error(
             f"Unexpected values found in target column "
             f"'{target_column}': {unexpected_values}"
         )
 
 
 def validate_numeric_ranges(df: pd.DataFrame) -> None:
-    """
-    Validate ranges of important numeric columns.
+    """Validate numeric types and ranges for important columns."""
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset to validate.
+    numeric_ranges = {
+        "tenure": (0, 72),
+        "MonthlyCharges": (0, float("inf")),
+    }
 
-    Raises
-    ------
-    DataValidationError
-        If important numeric columns contain invalid values.
-    """
+    for column, (minimum, maximum) in numeric_ranges.items():
+        if column not in df.columns:
+            _raise_validation_error(
+                f"Required numeric column '{column}' is missing."
+            )
 
-    if "tenure" not in df.columns:
-        raise DataValidationError(
-            "Column 'tenure' is missing."
-        )
+        if not pd.api.types.is_numeric_dtype(df[column]):
+            _raise_validation_error(
+                f"Column '{column}' must contain numeric data."
+            )
 
-    if "MonthlyCharges" not in df.columns:
-        raise DataValidationError(
-            "Column 'MonthlyCharges' is missing."
-        )
+        if df[column].isna().any():
+            _raise_validation_error(
+                f"Column '{column}' contains missing values."
+            )
 
-    if (df["tenure"] < 0).any():
-        raise DataValidationError(
-            "Invalid values found in 'tenure'. "
-            "Tenure cannot be negative."
-        )
+        if not df[column].between(minimum, maximum).all():
+            _raise_validation_error(
+                f"Column '{column}' contains values outside "
+                f"the allowed range [{minimum}, {maximum}]."
+            )
+        if not df[column].map(math.isfinite).all():
+           _raise_validation_error(f"Column '{column}' contains non-finite values.")
 
-    if (df["MonthlyCharges"] < 0).any():
-        raise DataValidationError(
-            "Invalid values found in 'MonthlyCharges'. "
-            "Monthly charges cannot be negative."
-        )
+        if not df[column].map( lambda value: abs(value) != float("inf") ).all():
+            _raise_validation_error(f"Column '{column}' contains infinite values." )
 
 
 def validate_raw_data(df: pd.DataFrame) -> None:
-    """
-    Run all raw-data validation checks.
+    """Run all raw-data validation checks."""
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset to validate.
-
-    Raises
-    ------
-    DataValidationError
-        If any validation check fails.
-    """
+    logger.info(
+        "Starting raw-data validation: rows=%d, columns=%d",
+        df.shape[0],
+        df.shape[1],
+    )
 
     validate_columns(df)
     validate_target_column(df)
     validate_numeric_ranges(df)
+
+    logger.info("Raw-data validation completed successfully.")

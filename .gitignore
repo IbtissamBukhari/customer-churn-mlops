@@ -30,3 +30,13 @@ mlruns/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local MLflow database
+mlflow.db
+
+# Application logs
+logs/
+*.log
+
+# Pytest cache
+.pytest_cache/
