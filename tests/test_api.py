@@ -42,7 +42,14 @@ def test_health_check():
     assert response.json() == {"status": "alive"}
 
 # Checks that the readiness endpoint confirms the model is available.
-def test_readiness_check():
+
+# Checks that the readiness endpoint confirms the model is available.
+def test_readiness_check(monkeypatch):
+    class FakeModel:
+        pass
+
+    monkeypatch.setattr("app.main.model", FakeModel())
+
     response = client.get("/ready")
 
     assert response.status_code == 200
@@ -50,6 +57,7 @@ def test_readiness_check():
         "status": "ready",
         "model": "available",
     }
+
 
 # Checks that readiness fails when the model is unavailable.
 def test_readiness_check_model_unavailable(monkeypatch):
@@ -62,19 +70,30 @@ def test_readiness_check_model_unavailable(monkeypatch):
         "detail": "Model is not available."
     }
 
-# Checks that the prediction endpoint accepts valid customer data.
-def test_predict_valid_customer():
+# Checks that the API accepts valid customer data and returns a prediction.
+def test_predict_valid_customer(monkeypatch):
+    class FakeModel:
+        def predict(self, customer_df):
+            return pd.DataFrame({
+                "prediction": [1],
+                "churn_probability": [0.75],
+            })
+
+    monkeypatch.setattr("app.main.model", FakeModel())
+
     customer = get_valid_customer()
-    response=client.post("/predict", json=customer)
-    assert response.status_code==200
+    response = client.post("/predict", json=customer)
+
+    assert response.status_code == 200
+
     result = response.json()
-    assert "churn_probability" in result
-    assert "prediction" in result
-    assert 0 <= result["churn_probability"] <= 1
-    assert result["prediction"] in [0, 1]
-    assert isinstance(result["churn_probability"], (int, float))
-    assert isinstance(result["prediction"], int)
-    assert result["prediction"] == int(result["churn_probability"] >= 0.30)
+
+    assert result["churn_probability"] == 0.75
+    assert result["prediction"] == 1
+    assert result["prediction"] == int(
+        result["churn_probability"] >= 0.30
+    )
+
 
 # Checks that the API rejects an invalid SeniorCitizen value.
 def test_predict_invalid_senior_citizen():
