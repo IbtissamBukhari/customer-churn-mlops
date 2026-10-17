@@ -11,9 +11,7 @@ COPY app/ app/
 COPY src/ src/
 COPY logging_config.py .
 
-COPY mlflow.db mlflow.db
-COPY mlruns/ mlruns/
-COPY models/ models/
+COPY deployment/ deployment/
 
 EXPOSE 8000
 

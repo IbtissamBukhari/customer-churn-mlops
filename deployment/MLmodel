@@ -1,0 +1,49 @@
+artifact_path: /workspaces/customer-churn-mlops/mlruns/1/models/m-9d8aa5dcbee4496babe7d7086ab04627/artifacts
+flavors:
+  python_function:
+    artifacts:
+      churn_artifact:
+        path: artifacts/churn_model.joblib
+        uri: /workspaces/customer-churn-mlops/models/churn_model.joblib
+    cloudpickle_version: 3.1.2
+    code: null
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pyfunc.model
+    python_model: python_model.pkl
+    python_version: 3.14.2
+    streamable: false
+is_signature_from_type_hint: false
+mlflow_version: 3.17.1
+model_id: m-9d8aa5dcbee4496babe7d7086ab04627
+model_size_bytes: 662185
+model_uuid: m-9d8aa5dcbee4496babe7d7086ab04627
+prompts: null
+run_id: 50dec295249a49558f483f4ebeb8f10c
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "string", "name": "customerID", "required": true}, {"type": "string",
+    "name": "gender", "required": true}, {"type": "long", "name": "SeniorCitizen",
+    "required": true}, {"type": "string", "name": "Partner", "required": true}, {"type":
+    "string", "name": "Dependents", "required": true}, {"type": "long", "name": "tenure",
+    "required": true}, {"type": "string", "name": "PhoneService", "required": true},
+    {"type": "string", "name": "MultipleLines", "required": true}, {"type": "string",
+    "name": "InternetService", "required": true}, {"type": "string", "name": "OnlineSecurity",
+    "required": true}, {"type": "string", "name": "OnlineBackup", "required": true},
+    {"type": "string", "name": "DeviceProtection", "required": true}, {"type": "string",
+    "name": "TechSupport", "required": true}, {"type": "string", "name": "StreamingTV",
+    "required": true}, {"type": "string", "name": "StreamingMovies", "required": true},
+    {"type": "string", "name": "Contract", "required": true}, {"type": "string", "name":
+    "PaperlessBilling", "required": true}, {"type": "string", "name": "PaymentMethod",
+    "required": true}, {"type": "double", "name": "MonthlyCharges", "required": true},
+    {"type": "double", "name": "TotalCharges", "required": true}]'
+  outputs: '[{"type": "double", "name": "churn_probability", "required": true}, {"type":
+    "long", "name": "prediction", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-10-17 07:07:29.352058'

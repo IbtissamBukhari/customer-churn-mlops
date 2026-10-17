@@ -3,7 +3,7 @@ import math
 import pandas as pd
 from pathlib import Path
 from typing import Literal
-from src.config import MLFLOW_DB_PATH
+from src.config import PROJECT_ROOT
 from fastapi import FastAPI,HTTPException
 from pydantic import BaseModel,Field,model_validator
 from fastapi.exceptions import RequestValidationError
@@ -18,10 +18,11 @@ app = FastAPI(title="Customer Churn Prediction API")
 app.add_exception_handler( ModelPredictionError,model_prediction_exception_handler)
 app.add_exception_handler(RequestValidationError,request_validation_exception_handler)
 
-mlflow.set_tracking_uri(f"sqlite:///{MLFLOW_DB_PATH}")
+model_path = PROJECT_ROOT / "deployment"
+
 model = None
 try:
-    model = mlflow.pyfunc.load_model("models:/CustomerChurnModel/2")
+    model = mlflow.pyfunc.load_model("deployment")
     logger.info("MLflow model loaded successfully.")
 
 except Exception as exc:
