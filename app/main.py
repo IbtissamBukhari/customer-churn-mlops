@@ -22,7 +22,7 @@ model_path = PROJECT_ROOT / "deployment"
 
 model = None
 try:
-    model = mlflow.pyfunc.load_model("deployment")
+    model = mlflow.pyfunc.load_model(str(model_path))
     logger.info("MLflow model loaded successfully.")
 
 except Exception as exc:
