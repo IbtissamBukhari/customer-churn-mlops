@@ -7,8 +7,3 @@ scikit-learn
 xgboost
 joblib
 pydantic
-pytest
-matplotlib
-seaborn
-jupyter
-ipykernel
